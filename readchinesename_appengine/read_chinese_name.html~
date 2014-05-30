@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	</head>
+	<body>
+		<div>
+			Simplified Chinese Mandarin pronunciation is based on Pinyin system.  People from mainland China use Pinyin name in passport.  It's like IPA and is a consistent system itself, the phonetic symbols are represented by Latin letters, and they have consistent rules.  However, like other non-English languages, the Chinese sound marks can't be perfectly handled by English IPA, either.
+			<br/><br/>
+			Moreover, some Latin letter combinations are not a natural word root for English speaker, for instance, "qi", "xu", "zhong" are unusual in English.  This search box is trying to use English IPA to represent Chinese terms as accurately as possible.
+			<br/><br/>
+			Some sample famous people's names: QianZhongshu, XiJinpin, GeYou, ZhangZiyi, XiangYu, SuShi, CaoXueqin, XinQiji.
+			<br/><br/>
+		</div>
+		<input id="name" type="text" placeholder="input Chinese pinyin name" value="" onkeydown="processKeyDown(event);"></input>
+		<button onclick="lookUp()">Lookup</button>
+		<br/><br/>
+		<div id="dbg"></div>
+	</body>
+	<script src="read_chinese_name.js"></script>
+</html>

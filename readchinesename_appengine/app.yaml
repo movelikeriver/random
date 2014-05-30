@@ -1,0 +1,15 @@
+application: readchinesename
+version: 1
+runtime: go
+api_version: go1
+
+handlers:
+- url: /stylesheets
+  static_dir: stylesheets
+
+- url: /(.*\.(gif|png|jpg|html|js))$
+  static_files: static/\1
+  upload: static/.*\.(gif|png|jpg|html|js)$
+
+- url: /.*
+  script: _go_app
