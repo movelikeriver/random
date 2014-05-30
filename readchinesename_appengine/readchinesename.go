@@ -1,3 +1,5 @@
+// See demo at:  http://readchinesename.appspot.com
+
 package readchinesename
 
 import (
