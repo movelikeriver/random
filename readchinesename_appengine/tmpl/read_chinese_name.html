@@ -2,21 +2,38 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport"content="target-densitydpi=device-dpi, width=device-width" />
+
+		<style type="text/css">
+			.responsible { border:0 none; padding:3px 5px 5px; margin:0; margin-top:5px; font-family: 'Droid Sans',Arial,sans-serif !important; }
+			.responsible .component { height:40px; margin-top:20px; }
+			.responsible .component input { border:1px solid #434343; font-size:15px; line-height:1.5em; width:78%; }
+			.responsible .component button { border:1px solid; font-size:15px; font-weight: bold; line-height:1.5em; width:18%; cursor: pointer; color: #434343; }
+			.responsible .show-result { border:0 none; font-size:15px; margin-top:15px; }
+			.responsible .note { border:0 none; font-size:12px; color: #777; }
+		</style>
+		<title>How to Read Chinese Name</title>
 	</head>
+
 	<body>
-		<div>
-			Simplified Chinese Mandarin pronunciation is based on Pinyin system.  People from mainland China use Pinyin name in passport.  It's like IPA and is a consistent system itself, the phonetic symbols are represented by Latin letters, and they have consistent rules.  However, like other non-English languages, the Chinese sound marks can't be perfectly handled by English IPA, either.
-			<br/><br/>
-			Moreover, some Latin letter combinations are not a natural word root for English speaker, for instance, "qi", "xu", "zhong" are unusual in English.  This search box is trying to use English IPA to represent Chinese terms as accurately as possible.
-			<br/><br/>
-			Some sample famous people's names: QianZhongshu, XiJinpin, GeYou, ZhangZiyi, XiangYu, SuShi, CaoXueqin, XinQiji.
-			<br/><br/>
+		<div class="responsible">
+			<div class="note">
+				Pronunciation of Chinese Mandarin is based on Pinyin system.  It's like IPA and is a consistent system itself.  The phonetic symbols are represented by Latin letters, and they have consistent rules.
+				<br/><br/>
+				However, some Latin letter combinations are not a natural word root for English speakers, for instance, some sample famous people's names: QianZhongshu, XiJinpin, GeYou, ZhangZiyi, XiangYu, SuShi, CaoXueqin, XinQiji.
+				<br/><br/>
+				This search box is trying to use English IPA to represent Chinese pronunciation as accurately as possible.
+				<br/><br/>
+				Feel free to contact  <i><u>read.chinese.name@gmail.com</u></i>  for any feedback.
+			</div>
+			<div class="component">
+				<input id="name" type="text" placeholder="Chinese Pinyin name" value="" onkeydown="processKeyDown(event);"></input>
+				<button onclick="lookUp()">Go</button>
+			</div>
+			<div id="dbg" class="show-result"></div>
 		</div>
-		<input id="name" type="text" placeholder="input Chinese pinyin name" value="" onkeydown="processKeyDown(event);"></input>
-		<button onclick="lookUp()">Lookup</button>
-		<br/><br/>
-		<div id="dbg"></div>
 	</body>
+
 	<script>
 
 /**
@@ -36,13 +53,13 @@ function lookUp() {
 	var pinyin = document.getElementById('name').value.trim().toLowerCase();
 
 	if (!isValidInput(pinyin)) {
-		output('Note: the input should be pure "a"-"z", no space, -, _, \', digit or other signs is allowed.  If you already know the segmentation, you can input the terms one by one.');
+		output('Invalid Pinyin name.  Note: the input should be pure "a"-"z", no space, -, _, \', digit or other signs is allowed.  If you already know the segmentation, you can input the terms one by one.');
 		return;
 	}
 	
 	var syPairListGroup = doSegment(pinyin);
 	if (syPairListGroup.length == 0) {
-		output('invalid Pinyin name');
+		output('Invalid Pinyin name.');
 		return;
 	}
 	var strList = [];
@@ -63,9 +80,9 @@ function lookUp() {
 			// this combination is incorrect.
 			continue;
 		}
-		strList.push('(' + subList.join(', ') + ')<br/>');
+		strList.push(' ( ' + subList.join(', ') + ' )<br/>');
 	}
-	output(strList.join(''));
+	output("Pronunciation:<br/>" + strList.join(''));
 }
 
 /**
@@ -205,9 +222,9 @@ function getPron(sheng, yun) {
 
 	if (sheng == 'l' && yun == 'u') {
 		// special case: lu and lv
-		var pron = (' [' +
-					SHENG_LIST[sheng] + YUN_LIST[yun][0] + '] or [' +
-					SHENG_LIST[sheng] + YUN_LIST['u2'][0] + ']');
+		var pron = (' [<b>' +
+					SHENG_LIST[sheng] + YUN_LIST[yun][0] + '</b>] or [<b>' +
+					SHENG_LIST[sheng] + YUN_LIST['u2'][0] + '</b>]');
 		return name + pron;
 	}
 
@@ -248,7 +265,7 @@ function getPron(sheng, yun) {
 	}
 
 	var pron = pronSheng + pronYun;
-	return name + ' [' + pron + ']';
+	return name + ' [<b>' + pron + '</b>]';
 }
 
 	</script>
