@@ -5,13 +5,13 @@
 # name as example, it's same principle for girl's name.
 #
 # Usage:
-#  python baby_name_trend.py
+#  python baby_name_trend.py > output/girl_name.txt
 
 import sys
 
 def GenerateNameRankFromFile(year, name_map):
     try:
-        fn = 'boy/%d.txt' % year
+        fn = 'girl/%d.txt' % year
         fp = open(fn)
     except IOError:
         print 'Can not open file: [%s]' % fn
