@@ -1,4 +1,5 @@
 // Usage:
+//   alias g++="g++ -std=c++11"
 //   g++ vector_reallocation.cpp
 //   ./a.out
 //
@@ -20,9 +21,8 @@ public:
 
   void Run() {
     // In real life production, these tasks can be run in parallel.
-    for (std::list<int*>::iterator it = tasks_.begin();
-         it != tasks_.end(); ++it) {
-      ReportCost(*it);
+    for (int* it : tasks_) {
+      ReportCost(it);
     }
   }
 
@@ -63,6 +63,7 @@ void ScheduleTasks(const int n, std::vector<int>* data_vec,
                    TaskManager* task_manager) {
   for (int i = 0; i < n; ++i) {
     data_vec->push_back(i);  // dynamically add a new element.
+    // Pointer to the address of container's index, but not element directly.
     task_manager->AddTask(&(*data_vec)[data_vec->size() - 1]);
   }
 }
