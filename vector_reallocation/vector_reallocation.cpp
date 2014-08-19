@@ -49,6 +49,8 @@
 #include <thread>
 #include <vector>
 
+static const int RECUR_N = 27;  // don't set too crazy num  :)
+
 class TaskManager {
 public:
   TaskManager() { }
@@ -78,10 +80,8 @@ private:
 
   static int InsaneCompute() {
     const clock_t start = clock();
-    for (int i = 2; i < 27; ++i) {   // don't set too crazy num  :)
-      if (double(Recur(i+1)) / double(Recur(i)) < 0.0) {
-	std::cout << "hmmm... that's impossible...";
-      }
+    for (int i = 2; i < RECUR_N; ++i) {
+      Recur(i);
     }
     return int(double(clock() - start) / CLOCKS_PER_SEC * 1000.0);  // ms
   }
