@@ -17,9 +17,12 @@ var flagRunInParallel = flag.Bool("run_in_parallel", true,
 	"running in parallel if true.")
 
 // Don't set too crazy num.
-// In 4-CPU Mac, for RECUR_N=40, num_tasks=9:
-5416ms * 9 sequentially
-20746ms in parallel
+// In 4-CPU Mac
+// $ go version
+// go version go1.2.1 darwin/amd64
+// For RECUR_N=40, num_tasks=9:
+//   5416ms * 9 sequentially
+//   20746ms in parallel
 const RECUR_N int = 40
 const NUM_TASKS int = 9
 

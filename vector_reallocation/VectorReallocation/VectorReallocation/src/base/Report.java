@@ -5,7 +5,12 @@ import java.util.Calendar;
 public class Report implements Runnable {
 	public int cost = -1;
 	// Don't try crazy num.
-	// In 4-CPU Mac, for RECUR_N=40 and NUM_TASKS=9:
+	// In 4-CPU Mac.
+	// $ java -version
+	// java version "1.7.0_67"
+	// Java(TM) SE Runtime Environment (build 1.7.0_67-b01)
+	// Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
+	// For RECUR_N=40 and NUM_TASKS=9:
 	// 1283ms * 9 sequentially
 	// 5887ms in parallel
 	private static final int RECUR_N = 40;

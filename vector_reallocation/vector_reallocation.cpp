@@ -53,9 +53,14 @@
 #include <vector>
 
 // Don't set too crazy num.
-// In 4-CPU Mac, for RECUR_N=40, num_tasks=9:
-// 2118ms * 9 sequentially
-// 9733ms in parallel
+// In 4-CPU Mac
+// $ g++ --version
+//  Apple LLVM version 5.0 (clang-500.2.79) (based on LLVM 3.3svn)
+//  Target: x86_64-apple-darwin13.3.0
+//  Thread model: posix
+// For RECUR_N=40, num_tasks=9:
+//   2118ms * 9 sequentially
+//   9733ms in parallel
 static const int RECUR_N = 40;
 static const int NUM_TASKS = 9;  // The error is related to this number.
 
