@@ -42,14 +42,16 @@
 //
 // It's due to updating dangling pointer in &vector[i].
 
-#include <time.h>  // clock_t, clock, CLOCKS_PER_SEC
+#include <sys/time.h>
 
 #include <iostream>
 #include <list>
 #include <thread>
 #include <vector>
 
-static const int RECUR_N = 27;  // don't set too crazy num  :)
+// don't set too crazy num, 9560ms for RECUR_N=30, num_tasks=9
+static const int RECUR_N = 40;
+static const int NUM_TASKS = 9;  // The error is related to this number.
 
 class TaskManager {
 public:
@@ -79,22 +81,28 @@ private:
   }
 
   static int InsaneCompute() {
-    const clock_t start = clock();
+    std::cout << "Start InsaneCompute()...\n";
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
     for (int i = 2; i < RECUR_N; ++i) {
-      Recur(i);
+      if (Recur(i) < 1) {
+	std::cout << "int overflow...\n";
+      }
     }
-    return int(double(clock() - start) / CLOCKS_PER_SEC * 1000.0);  // ms
+    std::cout << "Verify the value: " << Recur(RECUR_N) << ", "
+	      << (float)Recur(RECUR_N-1)/(float)Recur(RECUR_N) << std::endl;
+
+    gettimeofday(&end, NULL);
+    long sec  = end.tv_sec  - start.tv_sec;
+    long usec = end.tv_usec - start.tv_usec;
+    return (int)(((sec)*1000 + usec/1000.0) + 0.5);  // ms
   }
 
   static int Recur(int n) {
     if (n <= 2) {
       return n;
     }
-    int sum = 0;
-    for (int i = 0; i < n; ++i) {
-      sum += Recur(i);
-    }
-    return sum;
+    return Recur(n-1) + Recur(n-2);
   }
 
   std::list<int*> tasks_;  // not own the memory.
@@ -110,20 +118,27 @@ void ScheduleTasks(const int n, std::vector<int>* data_vec,
   }
 }
 
+const std::string GetNowString() {
+  time_t     now = time(0);
+  struct tm  tstruct;
+  char       buf[40];
+  strftime(buf, sizeof(buf), "%Y/%m/%d %X", localtime(&now));
+  return buf;
+}
+
 void Test_ScheduleTasks() {
   std::vector<int> data_vec;  // own the memory.
-  //  data_vec.reserve(9);
+  data_vec.reserve(NUM_TASKS);
   //  Uncomment the line above can make the code pass, but in real life application, the num of tasks may not be determined beforehand, it could be more difficult to trace the problem because of reallocation after exceeding reserved size.
-  const int num_tasks = 9;  // The error is related to this number.
   TaskManager task_manager;
-  ScheduleTasks(num_tasks, &data_vec, &task_manager);
+  ScheduleTasks(NUM_TASKS, &data_vec, &task_manager);
 
-  std::cout << "Before:\n";
+  std::cout << GetNowString() << " Before:\n";
   for (int i = 0; i < data_vec.size(); ++i) {
     std::cout << i << ", " << data_vec[i] << "\n";  // For debugging
   }
   task_manager.Run();
-  std::cout << "After:\n";
+  std::cout << GetNowString() << " After:\n";
   for (int i = 0; i < data_vec.size(); ++i) {
     std::cout << i << ", " << data_vec[i] << "\n";  // For debugging
   }

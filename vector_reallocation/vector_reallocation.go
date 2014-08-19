@@ -14,12 +14,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"sync"
 	"time"
 )
 
-const RECUR_N int = 27 // don't set too crazy num
+// don't set too crazy num, 50339ms for RECUR_N=40, num_tasks=9
+const RECUR_N int = 40
+const NUM_TASKS int = 9
 
 type TaskManager struct {
 	taskArr [](*int)
@@ -47,10 +50,16 @@ func (this TaskManager) reportCost(latencyMs *int, wg *sync.WaitGroup) {
 }
 
 func (this TaskManager) InsaneCompute() int {
+	log.Println("Start insaneCompute()...")
 	tsStart := time.Now()
 	for i := 2; i < RECUR_N; i++ {
-		this.Recur(i)
+		if this.Recur(i) < 1 {
+			log.Println("int overflow...")
+		}
 	}
+	fmt.Printf("Verify the value: %d, %.6f\n",
+		this.Recur(RECUR_N),
+		float32(this.Recur(RECUR_N-1))/float32(this.Recur(RECUR_N)))
 	tsEnd := time.Now()
 	return int(tsEnd.Sub(tsStart).Nanoseconds() / 1e6)
 }
@@ -59,11 +68,7 @@ func (this TaskManager) Recur(n int) int {
 	if n <= 2 {
 		return n
 	}
-	sum := 0
-	for i := 0; i < n; i++ {
-		sum += this.Recur(i)
-	}
-	return sum
+	return this.Recur(n-1) + this.Recur(n-2)
 }
 
 func scheduleTasks(n int, tasks *[]int, tm *TaskManager) {
@@ -76,9 +81,8 @@ func scheduleTasks(n int, tasks *[]int, tm *TaskManager) {
 
 func main() {
 	tasks := []int(nil)
-	n := 9
 	tm := TaskManager{}
-	scheduleTasks(n, &tasks, &tm)
+	scheduleTasks(NUM_TASKS, &tasks, &tm)
 	log.Println("Before:", tasks)
 	tm.run()
 	log.Println("After:", tasks)
