@@ -19,6 +19,8 @@ import (
 	"time"
 )
 
+const RECUR_N int = 27 // don't set too crazy num
+
 type TaskManager struct {
 	taskArr [](*int)
 }
@@ -46,10 +48,8 @@ func (this TaskManager) reportCost(latencyMs *int, wg *sync.WaitGroup) {
 
 func (this TaskManager) InsaneCompute() int {
 	tsStart := time.Now()
-	for i := 2; i < 27; i++ { // don't set too crazy num :)
-		if float64(this.Recur(i+1))/float64(this.Recur(i)) < 0.0 {
-			log.Println("hmmm... that's impossible...")
-		}
+	for i := 2; i < RECUR_N; i++ {
+		this.Recur(i)
 	}
 	tsEnd := time.Now()
 	return int(tsEnd.Sub(tsStart).Nanoseconds() / 1e6)
@@ -76,7 +76,7 @@ func scheduleTasks(n int, tasks *[]int, tm *TaskManager) {
 
 func main() {
 	tasks := []int(nil)
-	n := 4
+	n := 9
 	tm := TaskManager{}
 	scheduleTasks(n, &tasks, &tm)
 	log.Println("Before:", tasks)
