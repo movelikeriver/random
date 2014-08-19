@@ -3,7 +3,10 @@
 //   g++ vector_reallocation.cpp
 //   ./a.out  (for multiple times)
 //
-// The program will end up with:
+// This code was originally written for showing a bug, later I changed
+// it for benchmark among programming languages.
+//
+// If with bug (see main() function below), the program will end up with:
 //
 //   Before:
 //   0, 0
@@ -49,7 +52,10 @@
 #include <thread>
 #include <vector>
 
-// don't set too crazy num, 9560ms for RECUR_N=30, num_tasks=9
+// Don't set too crazy num.
+// In 4-CPU Mac, for RECUR_N=40, num_tasks=9:
+// 2118ms * 9 sequentially
+// 9733ms in parallel
 static const int RECUR_N = 40;
 static const int NUM_TASKS = 9;  // The error is related to this number.
 
@@ -62,8 +68,19 @@ public:
   }
 
   void Run() {
+    //    RunInParallel();
+    RunSequentially();
+  }
+
+private:
+  void RunSequentially() {
+    for (int* latency : tasks_) {
+      TaskManager::ReportCost(latency);
+    }
+  }
+
+  void RunInParallel() {
     std::vector<std::thread> thread_vec;
-    // Run in parallel.
     for (int* latency : tasks_) {
       thread_vec.push_back(std::thread(TaskManager::ReportCost, latency));
     }
@@ -73,7 +90,6 @@ public:
     }
   }
 
-private:
   static void ReportCost(int* latency_ms) {
     const int cost_ms = InsaneCompute();
     std::cout << "cost_ms: " << cost_ms << std::endl;
@@ -128,8 +144,10 @@ const std::string GetNowString() {
 
 void Test_ScheduleTasks() {
   std::vector<int> data_vec;  // own the memory.
+  // Comment the line below will make the job crash due to address
+  // change during container's memory reallocation.  See comment on
+  // top of this file.
   data_vec.reserve(NUM_TASKS);
-  //  Uncomment the line above can make the code pass, but in real life application, the num of tasks may not be determined beforehand, it could be more difficult to trace the problem because of reallocation after exceeding reserved size.
   TaskManager task_manager;
   ScheduleTasks(NUM_TASKS, &data_vec, &task_manager);
 

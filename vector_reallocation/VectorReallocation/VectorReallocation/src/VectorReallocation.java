@@ -34,7 +34,7 @@ public class VectorReallocation {
 			System.out.println(taskArr.get(i).cost);
 		}
 	}
-
+	
 	/**
 	 * @param args
 	 */
