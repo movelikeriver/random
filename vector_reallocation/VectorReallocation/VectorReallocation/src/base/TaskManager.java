@@ -17,8 +17,11 @@ public class TaskManager {
 	}
 
 	public void run() {
-//		runSequentially();
-		runInParallel();
+		if (Report.RUN_IN_PARALLEL) {
+			runInParallel();
+		} else {
+			runSequentially();
+		}
 	}
 
 	public void runSequentially() {

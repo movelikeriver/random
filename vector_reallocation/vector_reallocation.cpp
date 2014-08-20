@@ -58,11 +58,35 @@
 //  Apple LLVM version 5.0 (clang-500.2.79) (based on LLVM 3.3svn)
 //  Target: x86_64-apple-darwin13.3.0
 //  Thread model: posix
-// For RECUR_N=40, num_tasks=9:
-//   2118ms * 9 sequentially
-//   9733ms in parallel
-static const int RECUR_N = 40;
+//
+// For FIBONACCI_RECUR, RECUR_N=40, num_tasks=9:
+//   2118 ms * 9 sequentially, 1.9584 x
+//   9733 ms in parallel
+//
+// For FIBONACCI_FAST, RECUR_N=90, num_tasks=9:
+//   35980 ms * 9 sequentially, 2.4342 x
+//  133028 ms in parallel
+//
+// For PRIME_NUM:
+//  50546 ms * 9 sequentially, 2.3556 x
+// 193120 ms in parallel
+
+typedef long long int64;
+
+static const int RECUR_N = 90;
 static const int NUM_TASKS = 9;  // The error is related to this number.
+
+static const int64 MIN_PRIME_N = 100 * 1000;
+static const int64 MAX_PRIME_N = 300 * 1000;
+
+static const bool RUN_IN_PARALLEL = false;
+
+enum TestMode {
+  FIBONACCI_RECUR = 0,
+  FIBONACCI_FAST = 1,
+  PRIME_NUM = 2,
+};
+static const TestMode TEST_MODE = PRIME_NUM;
 
 class TaskManager {
 public:
@@ -73,8 +97,11 @@ public:
   }
 
   void Run() {
-    //    RunInParallel();
-    RunSequentially();
+    if (RUN_IN_PARALLEL) {
+      RunInParallel();
+    } else {
+      RunSequentially();
+    }
   }
 
 private:
@@ -102,21 +129,109 @@ private:
   }
 
   static int InsaneCompute() {
-    std::cout << "Start InsaneCompute()...\n";
     struct timeval start, end;
     gettimeofday(&start, NULL);
-    for (int i = 2; i < RECUR_N; ++i) {
-      if (Recur(i) < 1) {
-	std::cout << "int overflow...\n";
-      }
+
+    switch (TEST_MODE) {
+    case FIBONACCI_RECUR:
+      FibonacciRecur(RECUR_N);
+      break;
+    case FIBONACCI_FAST:
+      FibonacciFast(RECUR_N);
+      break;
+    case PRIME_NUM:
+      PrimeNumTest();
+      break;
+    default:
+      break;
     }
-    std::cout << "Verify the value: " << Recur(RECUR_N) << ", "
-	      << (float)Recur(RECUR_N-1)/(float)Recur(RECUR_N) << std::endl;
 
     gettimeofday(&end, NULL);
     long sec  = end.tv_sec  - start.tv_sec;
     long usec = end.tv_usec - start.tv_usec;
     return (int)(((sec)*1000 + usec/1000.0) + 0.5);  // ms
+  }
+
+  static void PrimeNumTest() {
+    std::cout << "Starting PrimeNumTest()...\n";
+    for (int i = MIN_PRIME_N; i < MAX_PRIME_N; i++) {
+      IsTwoPrimeMultipleDummy(i);
+    }
+  }
+
+  static bool IsTwoPrimeMultipleDummy(const int64 num) {
+    const int64 n = num / 2;
+    bool found = false;
+    for (int64 part1 = 2; part1 <= n; part1++) {
+      if (num % part1 != 0) {
+	continue;
+      }
+      const int64 part2 = num / part1;
+      if (part1 > part2) {
+	break;
+      }
+      if (!IsPrimeNumDummy(part1)) {
+	continue;
+      }
+      if (!IsPrimeNumDummy(part2)) {
+	continue;
+      }
+      if (part1 > 500 && part2 > 500) {
+	std::cout << "within " << MAX_PRIME_N << ", " << num << " = "
+		  << part1 << " * " << part2 << "\n";
+      }
+      found = true;
+    }
+    return found;
+  }
+
+  static bool IsPrimeNumDummy(const int64 num) {
+    const int64 n = num / 2;
+    for (int64 i = 2; i <= n; i++) {
+      if (num % i == 0) {
+	return false;
+      }
+    }
+    return true;
+  }
+
+  static void FibonacciFast(int n) {
+    std::cout << "Starting FibonacciFast(" << n << ")...\n";
+    bool verified = false;
+    for (int round1 = 0; round1 < 10000; round1++) {
+      for (int round2 = 0; round2 < 10000; round2++) {
+	if (n <= 2) {
+	  return;
+	}
+	int64 a = 1;
+	int64 b = 2;
+	for (int i = 2; i < n; i++) {
+	  int64 c = a + b;
+	  a = b;
+	  b = c;
+	  if (b < 1) {
+	    std::cout << "WARNING  int64 overflow..\n";
+	  }
+	}
+	if (!verified) {
+	  std::cout << "Verify the value: " << b << ", "
+		    << (double)a / (double)b << "\n";
+	  verified = true;
+	}
+      }
+    }
+  }
+
+  static void FibonacciRecur(int n) {
+    std::cout << "Starting FibonacciRecur(" << n << ")...\n";
+    for (int i = 2; i < n; ++i) {
+      if (Recur(i) < 1) {
+	std::cout << "int overflow...\n";
+      }
+    }
+    std::cout << "Verify the value: " << Recur(n) << ", "
+	      << (float)Recur(n-1)/(float)Recur(n) << std::endl;
+
   }
 
   static int Recur(int n) {
