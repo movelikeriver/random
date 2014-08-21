@@ -19,16 +19,16 @@ import (
 // go version go1.2.1 darwin/amd64
 //
 // For FIBONACCI_RECUR, RECUR_N=40, num_tasks=9:
-//   5416 ms * 9 sequentially, 2.3495 x
-//   20746 ms in parallel
+//   1758 ms * 9 sequentially, 1.9492 x
+//   8117 ms in parallel
 //
 // For FIBONACCI_FAST, RECUR_N=90, num_tasks=9:
-//   10680 ms * 9 sequentially, 4.7191 x
-//   20368 ms in parallel
+//   9383 ms * 9 sequentially, 3.9583 x
+//   21334 ms in parallel
 //
 // For PRIME_NUM:
-//   48082 ms * 9 sequentially, 2.4753 x
-//  174820 ms in parallel
+//   47980 ms * 9 sequentially, 2.4889 x
+//  173495 ms in parallel
 
 var flagRunInParallel = flag.Bool("run_in_parallel", true,
 	"running in parallel if true.")
@@ -83,7 +83,7 @@ func (this *TaskManager) runSequentially() {
 }
 
 func (this TaskManager) reportCost(latencyMs *int, wg *sync.WaitGroup) {
-	costMs := this.insaneCompute()
+	costMs := insaneCompute()
 	*latencyMs = costMs
 	log.Println("cost in ms:", costMs)
 	if wg != nil {
@@ -91,17 +91,17 @@ func (this TaskManager) reportCost(latencyMs *int, wg *sync.WaitGroup) {
 	}
 }
 
-func (this TaskManager) insaneCompute() int {
+func insaneCompute() int {
 	tsStart := time.Now()
 	switch TEST_MODE {
 	case FIBONACCI_RECUR:
-		this.fibonacciRecur(RECUR_N)
+		fibonacciRecurNTimes(RECUR_N)
 		break
 	case FIBONACCI_FAST:
-		this.fibonacciFast(RECUR_N)
+		fibonacciFast(RECUR_N)
 		break
 	case PRIME_NUM:
-		this.primeNumTestDummy()
+		primeNumTestDummy()
 		break
 	default:
 		break
@@ -110,15 +110,15 @@ func (this TaskManager) insaneCompute() int {
 	return int(tsEnd.Sub(tsStart).Nanoseconds() / 1e6)
 }
 
-func (this TaskManager) primeNumTestDummy() {
+func primeNumTestDummy() {
 	log.Println("Starting primeNumTestDummy()...")
 	for i := MIN_PRIME_N; i < MAX_PRIME_N; i++ {
 		// Whether this number is equal to prime1 * prime2
-		this.isTwoPrimeMultipleDummy(i)
+		isTwoPrimeMultipleDummy(i)
 	}
 }
 
-func (this TaskManager) isTwoPrimeMultipleDummy(num int64) bool {
+func isTwoPrimeMultipleDummy(num int64) bool {
 	var n int64 = num / 2
 	found := false
 	for part1 := int64(2); part1 <= n; part1++ {
@@ -129,10 +129,10 @@ func (this TaskManager) isTwoPrimeMultipleDummy(num int64) bool {
 		if part1 > part2 {
 			break
 		}
-		if !this.isPrimeNumDummy(part1) {
+		if !isPrimeNumDummy(part1) {
 			continue
 		}
-		if !this.isPrimeNumDummy(part2) {
+		if !isPrimeNumDummy(part2) {
 			continue
 		}
 		if part1 > 500 && part2 > 500 {
@@ -144,7 +144,7 @@ func (this TaskManager) isTwoPrimeMultipleDummy(num int64) bool {
 	return found
 }
 
-func (this TaskManager) isPrimeNumDummy(num int64) bool {
+func isPrimeNumDummy(num int64) bool {
 	var n int64 = num / 2
 	for i := int64(2); i <= n; i++ {
 		if num%i == 0 {
@@ -154,7 +154,7 @@ func (this TaskManager) isPrimeNumDummy(num int64) bool {
 	return true
 }
 
-func (this TaskManager) fibonacciFast(n int) {
+func fibonacciFast(n int) {
 	log.Println("Starting fibonacciFast(", n, ")...")
 	verified := false
 	for round1 := 0; round1 < 10000; round1++ {
@@ -178,23 +178,23 @@ func (this TaskManager) fibonacciFast(n int) {
 	}
 }
 
-func (this TaskManager) fibonacciRecur(n int) {
-	log.Println("Starting fibonacciRecur(", n, ")...")
+func fibonacciRecurNTimes(n int) {
+	log.Println("Starting fibonacciRecurNTimes(", n, ")...")
 	for i := 2; i < n; i++ {
-		if this.recur(i) < 1 {
+		if fibonacciRecur(i) < 1 {
 			log.Println("WARNING  int overflow...")
 		}
 	}
 	fmt.Printf("Verify the value: %d, %.6f\n",
-		this.recur(n),
-		float32(this.recur(n-1))/float32(this.recur(n)))
+		fibonacciRecur(n),
+		float32(fibonacciRecur(n-1))/float32(fibonacciRecur(n)))
 }
 
-func (this TaskManager) recur(n int) int {
+func fibonacciRecur(n int) int {
 	if n <= 2 {
 		return n
 	}
-	return this.recur(n-1) + this.recur(n-2)
+	return fibonacciRecur(n-1) + fibonacciRecur(n-2)
 }
 
 func scheduleTasks(n int, tasks *[]int, tm *TaskManager) {
