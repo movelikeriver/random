@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import base.CpuTimer;
 import base.Report;
 import base.TaskManager;
 
@@ -23,13 +24,22 @@ public class VectorReallocation {
 		System.out.println(
 				Calendar.getInstance().getTime().toString() +
 				"  Before:");
-		for (int i = 0; i < taskArr.size(); i++) {
-			System.out.println(taskArr.get(i).cost);
-		}
+		VectorReallocation.printArr(taskArr);
+		
+		CpuTimer timer = new CpuTimer();
+		timer.start();
 		taskManager.run();
+		timer.stop();
+		
 		System.out.println(
 				Calendar.getInstance().getTime().toString() +
 				"  After:");
+		VectorReallocation.printArr(taskArr);
+		
+		System.out.println("Total in ms: " + timer.getInMs());
+	}
+	
+	private static void printArr(final ArrayList<Report> taskArr) {
 		for (int i = 0; i < taskArr.size(); i++) {
 			System.out.println(taskArr.get(i).cost);
 		}

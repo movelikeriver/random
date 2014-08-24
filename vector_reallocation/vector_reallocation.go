@@ -19,15 +19,15 @@ import (
 // go version go1.2.1 darwin/amd64
 //
 // For FIBONACCI_RECUR, RECUR_N=40, num_tasks=9:
-//   1758 ms * 9 sequentially, 1.9492 x
-//   8117 ms in parallel
+//  19340 ms sequentially, 2.3382 x
+//   8271 ms in parallel
 //
 // For FIBONACCI_FAST, RECUR_N=90, num_tasks=9:
-//   9383 ms * 9 sequentially, 3.9583 x
-//   21334 ms in parallel
+//   85357 ms sequentially, 1.7091 x
+//   49940 ms in parallel
 //
 // For PRIME_NUM:
-//   47980 ms * 9 sequentially, 2.4889 x
+//  409098 ms sequentially, 2.3579 x
 //  173495 ms in parallel
 
 var flagRunInParallel = flag.Bool("run_in_parallel", true,
@@ -39,15 +39,32 @@ const (
 	PRIME_NUM       int = 2
 )
 
-const TEST_MODE int = PRIME_NUM
+const TEST_MODE int = FIBONACCI_RECUR
 
 // for Fibonacci
-const RECUR_N int = 90
+const RECUR_N int = 40
 const NUM_TASKS int = 9
 
 // for prime
 const MIN_PRIME_N int64 = 100 * 1000
 const MAX_PRIME_N int64 = 300 * 1000
+
+type CpuTimer struct {
+	tsStart time.Time
+	tsEnd   time.Time
+}
+
+func (this *CpuTimer) start() {
+	this.tsStart = time.Now()
+}
+
+func (this *CpuTimer) stop() {
+	this.tsEnd = time.Now()
+}
+
+func (this CpuTimer) getInMs() int {
+	return int(this.tsEnd.Sub(this.tsStart).Nanoseconds() / 1e6)
+}
 
 type TaskManager struct {
 	taskArr [](*int)
@@ -92,7 +109,8 @@ func (this TaskManager) reportCost(latencyMs *int, wg *sync.WaitGroup) {
 }
 
 func insaneCompute() int {
-	tsStart := time.Now()
+	timer := CpuTimer{}
+	timer.start()
 	switch TEST_MODE {
 	case FIBONACCI_RECUR:
 		fibonacciRecurNTimes(RECUR_N)
@@ -106,8 +124,8 @@ func insaneCompute() int {
 	default:
 		break
 	}
-	tsEnd := time.Now()
-	return int(tsEnd.Sub(tsStart).Nanoseconds() / 1e6)
+	timer.stop()
+	return timer.getInMs()
 }
 
 func primeNumTestDummy() {
@@ -137,7 +155,7 @@ func isTwoPrimeMultipleDummy(num int64) bool {
 		}
 		if part1 > 500 && part2 > 500 {
 			log.Println("within ", MAX_PRIME_N, ", ", num, " = ",
-				part1, " * ", part2, "\n")
+				part1, " * ", part2)
 		}
 		found = true
 	}
@@ -231,6 +249,10 @@ func main() {
 	tm := TaskManager{}
 	scheduleTasks(NUM_TASKS, &tasks, &tm)
 	log.Println("Before:", tasks)
+	timer := CpuTimer{}
+	timer.start()
 	tm.run()
+	timer.stop()
 	log.Println("After:", tasks)
+	log.Println("total in ms:", timer.getInMs())
 }

@@ -1,6 +1,6 @@
 // Usage:
 //   alias g++="g++ -std=c++11"
-//   g++ vector_reallocation.cpp
+//   g++ -Ofast -march=native vector_reallocation.cpp
 //   ./a.out  (for multiple times)
 //
 // This code was originally written for showing a bug, later I changed
@@ -60,20 +60,20 @@
 //  Thread model: posix
 //
 // For FIBONACCI_RECUR, RECUR_N=40, num_tasks=9:
-//   2118 ms * 9 sequentially, 1.9584 x
-//   9733 ms in parallel
+//  10925 ms sequentially, 1.6247 x
+//   6724 ms in parallel
 //
 // For FIBONACCI_FAST, RECUR_N=90, num_tasks=9:
-//   35980 ms * 9 sequentially, 2.4342 x
-//  133028 ms in parallel
+//   61607 ms sequentially, 1.9502 x
+//   31589 ms in parallel
 //
 // For PRIME_NUM:
-//  50546 ms * 9 sequentially, 2.3556 x
-// 193120 ms in parallel
+// 409291 ms sequentially, 2.4876 x
+// 164531 ms in parallel
 
 typedef long long int64;
 
-static const int RECUR_N = 90;
+static const int RECUR_N = 40;
 static const int NUM_TASKS = 9;  // The error is related to this number.
 
 static const int64 MIN_PRIME_N = 100 * 1000;
@@ -86,7 +86,28 @@ enum TestMode {
   FIBONACCI_FAST = 1,
   PRIME_NUM = 2,
 };
-static const TestMode TEST_MODE = PRIME_NUM;
+static const TestMode TEST_MODE = FIBONACCI_RECUR;
+
+class CpuTimer {
+public:
+  CpuTimer() {}
+
+  void Start() {
+    gettimeofday(&start_, NULL);
+  }
+  void Stop() {
+    gettimeofday(&end_, NULL);
+  }
+  int GetInMs() {
+    long sec  = end_.tv_sec  - start_.tv_sec;
+    long usec = end_.tv_usec - start_.tv_usec;
+    return (int)(((sec)*1000 + usec/1000.0) + 0.5);  // ms
+  }
+
+private:
+  struct timeval start_;
+  struct timeval end_;
+};
 
 class TaskManager {
 public:
@@ -129,8 +150,8 @@ private:
   }
 
   static int InsaneCompute() {
-    struct timeval start, end;
-    gettimeofday(&start, NULL);
+    CpuTimer timer;
+    timer.Start();
 
     switch (TEST_MODE) {
     case FIBONACCI_RECUR:
@@ -146,10 +167,8 @@ private:
       break;
     }
 
-    gettimeofday(&end, NULL);
-    long sec  = end.tv_sec  - start.tv_sec;
-    long usec = end.tv_usec - start.tv_usec;
-    return (int)(((sec)*1000 + usec/1000.0) + 0.5);  // ms
+    timer.Stop();
+    return timer.GetInMs();
   }
 
   static void PrimeNumTest() {
@@ -262,6 +281,12 @@ const std::string GetNowString() {
   return buf;
 }
 
+void PrintVector(const std::vector<int>& data_vec) {
+  for (int i = 0; i < data_vec.size(); ++i) {
+    std::cout << i << ", " << data_vec[i] << "\n";  // For debugging
+  }
+}
+
 void Test_ScheduleTasks() {
   std::vector<int> data_vec;  // own the memory.
   // Comment the line below will make the job crash due to address
@@ -272,14 +297,16 @@ void Test_ScheduleTasks() {
   ScheduleTasks(NUM_TASKS, &data_vec, &task_manager);
 
   std::cout << GetNowString() << " Before:\n";
-  for (int i = 0; i < data_vec.size(); ++i) {
-    std::cout << i << ", " << data_vec[i] << "\n";  // For debugging
-  }
+  PrintVector(data_vec);
+
+  CpuTimer timer;
+  timer.Start();
   task_manager.Run();
+  timer.Stop();
+ 
   std::cout << GetNowString() << " After:\n";
-  for (int i = 0; i < data_vec.size(); ++i) {
-    std::cout << i << ", " << data_vec[i] << "\n";  // For debugging
-  }
+  PrintVector(data_vec);
+  std::cout << "Total cost in ms: " << timer.GetInMs() << std::endl;
 }
 
 int main() {

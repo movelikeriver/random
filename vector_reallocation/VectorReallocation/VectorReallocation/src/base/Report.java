@@ -1,6 +1,6 @@
 package base;
 
-import java.util.Calendar;
+import base.CpuTimer;
 
 public class Report implements Runnable {
 	public int cost = -1;
@@ -12,18 +12,18 @@ public class Report implements Runnable {
 	// Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
 	//
 	// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9:
-	// 1283 ms * 9 sequentially, 1.9614 x
-	// 5887 ms in parallel
+	// 75608 ms sequentially, 2.4220 x
+	// 31216 ms in parallel
 	//
 	// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9:
-	// 20413 ms * 9 sequentially,  ??
-	// 217103 ms in parallel,  ??
+	// 174623 ms sequentially,  .8732 x
+	// 199965 ms in parallel,   ???
 	//
 	// For PRIME_NUM:
-	// 49654 ms * 9 sequentially, 2.0662 x
-	// 216279 ms in parallel
+	// 433432 ms sequentially, 2.1285 x
+	// 203624 ms in parallel
 
-	private static final int RECUR_N = 90;
+	private static final int RECUR_N = 40;
 	public static final int NUM_TASKS = 9;
 	public static final boolean RUN_IN_PARALLEL = false;
 
@@ -40,7 +40,8 @@ public class Report implements Runnable {
 	}
 
 	private int insaneCompute() {
-		long start = Calendar.getInstance().getTimeInMillis();
+		CpuTimer timer = new CpuTimer();
+		timer.start();
 		switch (TEST_MODE) {
 		case FIBONACCI_RECUR:
 			fibonacciRecur(RECUR_N);
@@ -54,7 +55,8 @@ public class Report implements Runnable {
 		default:
 			break;
 		}
-		int costMs = (int) (Calendar.getInstance().getTimeInMillis() - start);
+		timer.stop();
+		int costMs = (int)timer.getInMs();
 		System.out.println("cost_ms: " + costMs);
 		return costMs;
 	}
