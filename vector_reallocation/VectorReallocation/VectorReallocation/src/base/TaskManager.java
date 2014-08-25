@@ -1,7 +1,9 @@
 package base;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import base.Report;
 
@@ -31,22 +33,18 @@ public class TaskManager {
 	}
 
 	public void runInParallel() {
-		List<Thread> threads = new ArrayList<Thread>();
+	    CountDownLatch latch = new CountDownLatch(tasks.size());
+	    ExecutorService executor = Executors.newFixedThreadPool(tasks.size()); 
 		for (int i = 0; i < tasks.size(); i++) {
-			Thread worker = new Thread(tasks.get(i));
-			worker.setName(String.valueOf(i));
-			worker.start();
-			threads.add(worker);
+			Report task = tasks.get(i);
+			task.setLatch(latch);
+			executor.submit(task);
 		}
-
-		int running = 0;
-		do {
-			running = 0;
-			for (Thread thread : threads) {
-				if (thread.isAlive()) {
-					running++;
-				}
-			}
-		} while (running > 0);
+		
+		try {
+			latch.await();
+		} catch (InterruptedException e) {
+	        e.printStackTrace();
+	    }
 	}
 }

@@ -1,9 +1,13 @@
 package base;
 
+import java.util.concurrent.CountDownLatch;
+
 import base.CpuTimer;
 
 public class Report implements Runnable {
 	public int cost = -1;
+	private CountDownLatch latch = null;
+	
 	// Don't try crazy num.
 	// In 4-CPU Mac.
 	// $ java -version
@@ -12,25 +16,25 @@ public class Report implements Runnable {
 	// Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
 	//
 	// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9:
-	// 75608 ms sequentially, 2.4220 x
-	// 31216 ms in parallel
+	// 10842 ms sequentially, 1.9788 x
+	//  5479 ms in parallel
 	//
 	// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9:
-	// 174623 ms sequentially,  .8732 x
-	// 199965 ms in parallel,   ???
+	// 174623 ms sequentially,  2.5480 x
+	//  68532 ms in parallel,   (166514 ms in first run)
 	//
 	// For PRIME_NUM:
-	// 433432 ms sequentially, 2.1285 x
-	// 203624 ms in parallel
+	// 447309 ms sequentially, 2.4411 x
+	// 183240 ms in parallel
 
-	private static final int RECUR_N = 40;
+	private static final int RECUR_N = 90;
 	public static final int NUM_TASKS = 9;
 	public static final boolean RUN_IN_PARALLEL = false;
 
 	private enum RunMode {
 		FIBONACCI_RECUR, FIBONACCI_FAST, PRIME_NUM,
 	};
-	private static final RunMode TEST_MODE = RunMode.FIBONACCI_FAST;
+	private static final RunMode TEST_MODE = RunMode.PRIME_NUM;
 
 	private static final long MIN_PRIME_N = 100 * 1000;
 	private static final long MAX_PRIME_N = 300 * 1000;
@@ -150,8 +154,15 @@ public class Report implements Runnable {
 		return recur(n - 1) + recur(n - 2);
 	}
 
+	public void setLatch(CountDownLatch latch) {
+		this.latch = latch;
+	}
+	
 	@Override
 	public void run() {
 		update();
+		if (this.latch != null) {
+	        this.latch.countDown();
+		}
 	}
 }
