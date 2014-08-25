@@ -16,24 +16,24 @@ public class Report implements Runnable {
 	// Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
 	//
 	//
-	// For FIBONACCI_RECUR, RECUR_N=40 and NUM=TASKS=9
+	// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9
 	// RUN_IN_PARALLEL=false, total in ms: 12552
 	//
-	// For FIBONACCI_RECUR, RECUR_N=40 and NUM=TASKS=9
+	// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9
 	// RUN_IN_PARALLEL=true, total in ms: 5583
 	// 2.2483 x
 	//
-	// For FIBONACCI_FAST, RECUR_N=90 and NUM=TASKS=9
+	// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9
 	// RUN_IN_PARALLEL=false, total in ms: 212962
 	//
-	// For FIBONACCI_FAST, RECUR_N=90 and NUM=TASKS=9
+	// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9
 	// RUN_IN_PARALLEL=true, total in ms: 103223
 	// 2.0631 x
 	//
-	// For PRIME_NUM, RECUR_N=90 and NUM=TASKS=9
+	// For PRIME_NUM, RECUR_N=90 and NUM_TASKS=9
 	// RUN_IN_PARALLEL=false, total in ms: 520514
 	//
-	// For PRIME_NUM, RECUR_N=90 and NUM=TASKS=9
+	// For PRIME_NUM, RECUR_N=90 and NUM_TASKS=9
 	// RUN_IN_PARALLEL=true, total in ms: 185111
 	// 2.8119 x
 

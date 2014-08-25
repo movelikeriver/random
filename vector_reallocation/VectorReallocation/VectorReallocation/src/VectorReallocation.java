@@ -31,7 +31,7 @@ public class VectorReallocation {
 		sb.append(Report.TEST_MODE.toString());
 		sb.append(", RECUR_N=");
 		sb.append(Report.RECUR_N);
-		sb.append(" and NUM=TASKS=");
+		sb.append(" and NUM_TASKS=");
 		sb.append(Report.NUM_TASKS);
 		sb.append("\n");
 		result.resultOverall = sb.toString();
