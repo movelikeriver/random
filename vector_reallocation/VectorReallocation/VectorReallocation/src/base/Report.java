@@ -7,7 +7,7 @@ import base.CpuTimer;
 public class Report implements Runnable {
 	public int cost = -1;
 	private CountDownLatch latch = null;
-	
+
 	// Don't try crazy num.
 	// In 4-CPU Mac.
 	// $ java -version
@@ -17,26 +17,27 @@ public class Report implements Runnable {
 	//
 	// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9:
 	// 10842 ms sequentially, 1.9788 x
-	//  5479 ms in parallel
+	// 5479 ms in parallel
 	//
 	// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9:
-	// 174623 ms sequentially,  2.5480 x
-	//  68532 ms in parallel,   (166514 ms in first run)
+	// 174623 ms sequentially, 2.5480 x
+	// 68532 ms in parallel, (166514 ms in first run)
 	//
 	// For PRIME_NUM:
 	// 447309 ms sequentially, 2.4411 x
 	// 183240 ms in parallel
 
-	private static final int RECUR_N = 90;
-	public static final int NUM_TASKS = 9;
-	public static final boolean RUN_IN_PARALLEL = false;
+	public static int RECUR_N = 40;
+	public static int NUM_TASKS = 9;
+	public static boolean RUN_IN_PARALLEL = true;
 
-	private enum RunMode {
+	public enum RunMode {
 		FIBONACCI_RECUR, FIBONACCI_FAST, PRIME_NUM,
 	};
-	private static final RunMode TEST_MODE = RunMode.PRIME_NUM;
 
-	private static final long MIN_PRIME_N = 100 * 1000;
+	public static RunMode TEST_MODE = RunMode.FIBONACCI_RECUR;
+
+	private static long MIN_PRIME_N = 100 * 1000;
 	private static final long MAX_PRIME_N = 300 * 1000;
 
 	private void update() {
@@ -60,7 +61,7 @@ public class Report implements Runnable {
 			break;
 		}
 		timer.stop();
-		int costMs = (int)timer.getInMs();
+		int costMs = (int) timer.getInMs();
 		System.out.println("cost_ms: " + costMs);
 		return costMs;
 	}
@@ -157,12 +158,12 @@ public class Report implements Runnable {
 	public void setLatch(CountDownLatch latch) {
 		this.latch = latch;
 	}
-	
+
 	@Override
 	public void run() {
 		update();
 		if (this.latch != null) {
-	        this.latch.countDown();
+			this.latch.countDown();
 		}
 	}
 }
