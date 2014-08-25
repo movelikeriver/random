@@ -5,10 +5,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -18,20 +18,27 @@ import (
 // $ go version
 // go version go1.2.1 darwin/amd64
 //
-// For FIBONACCI_RECUR, RECUR_N=40, num_tasks=9:
-//  19340 ms sequentially, 2.3382 x
-//   8271 ms in parallel
+// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9
+// RUN_IN_PARALLEL=false, total in ms: 24319
 //
-// For FIBONACCI_FAST, RECUR_N=90, num_tasks=9:
-//   85357 ms sequentially, 1.7091 x
-//   49940 ms in parallel
+// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9
+// RUN_IN_PARALLEL=true, total in ms: 8068
+// 3.0143 x
 //
-// For PRIME_NUM:
-//  409098 ms sequentially, 2.3579 x
-//  173495 ms in parallel
+// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9
+// RUN_IN_PARALLEL=false, total in ms: 106144
+//
+// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9
+// RUN_IN_PARALLEL=true, total in ms: 52843
+// 2.0087 x
+//
+// For PRIME_NUM, RECUR_N=90 and NUM_TASKS=9
+// RUN_IN_PARALLEL=false, total in ms: 482560
+//
+// For PRIME_NUM, RECUR_N=90 and NUM_TASKS=9
+// RUN_IN_PARALLEL=true, total in ms: 177735
+// 2.7151 x
 
-var flagRunInParallel = flag.Bool("run_in_parallel", true,
-	"running in parallel if true.")
 
 const (
 	FIBONACCI_RECUR int = 0
@@ -39,16 +46,36 @@ const (
 	PRIME_NUM       int = 2
 )
 
-const TEST_MODE int = FIBONACCI_RECUR
+var TEST_MODE int = FIBONACCI_RECUR
+
+func getTestModeString(test_mode int) string {
+	switch test_mode {
+	case FIBONACCI_RECUR:
+		return "FIBONACCI_RECUR"
+	case FIBONACCI_FAST:
+		return "FIBONACCI_FAST"
+	case PRIME_NUM:
+		return "PRIME_NUM"
+	default:
+		break
+	}
+	return "INVALID_TEST_MODE"
+}
+
+var RUN_IN_PARALLEL bool = true
 
 // for Fibonacci
-const RECUR_N int = 40
+var RECUR_N int = 40
+
 const NUM_TASKS int = 9
 
 // for prime
 const MIN_PRIME_N int64 = 100 * 1000
 const MAX_PRIME_N int64 = 300 * 1000
 
+/////////////
+// CpuTimer
+/////////////
 type CpuTimer struct {
 	tsStart time.Time
 	tsEnd   time.Time
@@ -66,6 +93,18 @@ func (this CpuTimer) getInMs() int {
 	return int(this.tsEnd.Sub(this.tsStart).Nanoseconds() / 1e6)
 }
 
+///////////////
+// TestResult
+///////////////
+type TestResult struct {
+	overall  string
+	details  string
+	costInMs int
+}
+
+///////////////
+// TaskManager
+///////////////
 type TaskManager struct {
 	taskArr [](*int)
 }
@@ -75,7 +114,7 @@ func (this *TaskManager) addTask(cost *int) {
 }
 
 func (this *TaskManager) run() {
-	if *flagRunInParallel {
+	if RUN_IN_PARALLEL {
 		this.runInParallel()
 	} else {
 		this.runSequentially()
@@ -241,18 +280,110 @@ func scheduleTasks(n int, tasks *[]int, tm *TaskManager) {
 //	}
 //}
 
-func main() {
-	flag.Parse()
-	log.Println("Num of CPUs: ", runtime.NumCPU())
-	runtime.GOMAXPROCS(runtime.NumCPU())
+func printArr(arr []int) string {
+	var parts []string
+	for i := 0; i < len(arr); i++ {
+		parts = append(parts, fmt.Sprintf("%d, ", arr[i]))
+	}
+	return strings.Join(parts, "")
+}
+
+func testScheduleTasks() TestResult {
+	result := TestResult{}
+
+	result.overall = fmt.Sprintf("For %s, RECUR_N=%d and NUM_TASKS=%d\n"+
+		"RUN_IN_PARALLEL=%t, ", getTestModeString(TEST_MODE), RECUR_N,
+		NUM_TASKS, RUN_IN_PARALLEL)
 	tasks := []int(nil)
 	tm := TaskManager{}
 	scheduleTasks(NUM_TASKS, &tasks, &tm)
-	log.Println("Before:", tasks)
+
+	result.details += (time.Now().Format(time.UnixDate) +
+		"  Before: " + printArr(tasks) + "\n")
+
 	timer := CpuTimer{}
 	timer.start()
 	tm.run()
 	timer.stop()
-	log.Println("After:", tasks)
-	log.Println("total in ms:", timer.getInMs())
+
+	result.details += (time.Now().Format(time.UnixDate) +
+		"  After: " + printArr(tasks) + "\n")
+
+	result.overall += fmt.Sprintf("total in ms: %d\n", timer.getInMs())
+	result.costInMs = timer.getInMs()
+
+	return result
+}
+
+func main() {
+	log.Println("Num of CPUs: ", runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	results := []TestResult(nil)
+	{
+		TEST_MODE = FIBONACCI_RECUR
+		RECUR_N = 40
+		{
+			RUN_IN_PARALLEL = false
+			result := testScheduleTasks()
+			log.Println(result.details)
+			results = append(results, result)
+
+		}
+		{
+			RUN_IN_PARALLEL = true
+			result := testScheduleTasks()
+			log.Println(result.details)
+			results = append(results, result)
+		}
+	}
+	{
+		TEST_MODE = FIBONACCI_FAST
+		RECUR_N = 90
+		{
+			RUN_IN_PARALLEL = false
+			result := testScheduleTasks()
+			log.Println(result.details)
+			results = append(results, result)
+
+		}
+		{
+			RUN_IN_PARALLEL = true
+			result := testScheduleTasks()
+			log.Println(result.details)
+			results = append(results, result)
+		}
+	}
+	{
+		TEST_MODE = PRIME_NUM
+		{
+			RUN_IN_PARALLEL = false
+			result := testScheduleTasks()
+			log.Println(result.details)
+			results = append(results, result)
+
+		}
+		{
+			RUN_IN_PARALLEL = true
+			result := testScheduleTasks()
+			log.Println(result.details)
+			results = append(results, result)
+		}
+	}
+
+	costSequentially := 0
+	for i := range results {
+		if i%2 == 0 {
+			// sequentially
+			costSequentially = results[i].costInMs
+		} else {
+			results[i].overall += fmt.Sprintf("%.4f x\n",
+				float64(costSequentially)/float64(results[i].costInMs))
+		}
+		fmt.Println(results[i].details)
+	}
+
+	for i := range results {
+		fmt.Println(results[i].overall)
+	}
 }

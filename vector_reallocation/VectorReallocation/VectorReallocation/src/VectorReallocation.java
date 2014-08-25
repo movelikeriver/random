@@ -6,6 +6,13 @@ import base.Report;
 import base.TaskManager;
 
 public class VectorReallocation {
+
+	public static class TestResult {
+		public String resultOverall = new String();
+		public String resultDetails = new String();
+		public long totalCostInMs = -1;
+	}
+
 	public static void scheduleTasks(int num, ArrayList<Report> taskArr,
 			TaskManager taskManager) {
 		for (int i = 0; i < num; i++) {
@@ -17,9 +24,9 @@ public class VectorReallocation {
 		}
 	}
 
-	public static String testScheduleTasks() {
-		String ret = new String();
-		StringBuilder sb = new StringBuilder();			
+	public static TestResult testScheduleTasks() {
+		TestResult result = new TestResult();
+		StringBuilder sb = new StringBuilder();
 		sb.append("For ");
 		sb.append(Report.TEST_MODE.toString());
 		sb.append(", RECUR_N=");
@@ -27,7 +34,7 @@ public class VectorReallocation {
 		sb.append(" and NUM=TASKS=");
 		sb.append(Report.NUM_TASKS);
 		sb.append("\n");
-		ret = sb.toString();
+		result.resultOverall = sb.toString();
 
 		ArrayList<Report> taskArr = new ArrayList<Report>();
 		TaskManager taskManager = new TaskManager();
@@ -37,9 +44,10 @@ public class VectorReallocation {
 		sb.setLength(0);
 		sb.append(Calendar.getInstance().getTime().toString());
 		sb.append("  Before: ");
-		ret = ret.concat(sb.toString());
-		ret = ret.concat(VectorReallocation.printArr(taskArr));
-		
+		result.resultDetails = result.resultDetails.concat(sb.toString());
+		result.resultDetails = result.resultDetails.concat(VectorReallocation
+				.printArr(taskArr));
+
 		CpuTimer timer = new CpuTimer();
 		timer.start();
 		taskManager.run();
@@ -48,21 +56,24 @@ public class VectorReallocation {
 		sb.setLength(0);
 		sb.append(Calendar.getInstance().getTime().toString());
 		sb.append("  After: ");
-		ret = ret.concat(sb.toString());
-		ret = ret.concat(VectorReallocation.printArr(taskArr));
+		result.resultDetails = result.resultDetails.concat(sb.toString());
+		result.resultDetails = result.resultDetails.concat(VectorReallocation
+				.printArr(taskArr));
 
 		sb.setLength(0);
 		sb.append("RUN_IN_PARALLEL=");
 		sb.append(Report.RUN_IN_PARALLEL);
 		sb.append(", ");
-		ret = ret.concat(sb.toString());
+		result.resultOverall = result.resultOverall.concat(sb.toString());
 
 		sb.setLength(0);
 		sb.append("total in ms: ");
 		sb.append(timer.getInMs());
-		ret = ret.concat(sb.toString());
+		sb.append("\n");
+		result.totalCostInMs = timer.getInMs();
+		result.resultOverall = result.resultOverall.concat(sb.toString());
 
-		return ret;
+		return result;
 	}
 
 	private static String printArr(final ArrayList<Report> taskArr) {
@@ -79,8 +90,74 @@ public class VectorReallocation {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String str = VectorReallocation.testScheduleTasks();
-		System.out.println(str);
+		ArrayList<TestResult> retArr = new ArrayList<TestResult>();
+		{
+			Report.TEST_MODE = Report.RunMode.FIBONACCI_RECUR;
+			Report.RECUR_N = 40;
+			{
+				Report.RUN_IN_PARALLEL = false;
+				TestResult ret = VectorReallocation.testScheduleTasks();
+				retArr.add(ret);
+				System.out.println(ret.resultDetails);
+			}
+			{
+				Report.RUN_IN_PARALLEL = true;
+				TestResult ret = VectorReallocation.testScheduleTasks();
+				retArr.add(ret);
+				System.out.println(ret.resultDetails);
+			}
+		}
+		{
+			Report.TEST_MODE = Report.RunMode.FIBONACCI_FAST;
+			Report.RECUR_N = 90;
+			{
+				Report.RUN_IN_PARALLEL = false;
+				TestResult ret = VectorReallocation.testScheduleTasks();
+				retArr.add(ret);
+				System.out.println(ret.resultDetails);
+			}
+			{
+				Report.RUN_IN_PARALLEL = true;
+				TestResult ret = VectorReallocation.testScheduleTasks();
+				retArr.add(ret);
+				System.out.println(ret.resultDetails);
+			}
+		}
+		{
+			Report.TEST_MODE = Report.RunMode.PRIME_NUM;
+			{
+				Report.RUN_IN_PARALLEL = false;
+				TestResult ret = VectorReallocation.testScheduleTasks();
+				retArr.add(ret);
+				System.out.println(ret.resultDetails);
+			}
+			{
+				Report.RUN_IN_PARALLEL = true;
+				TestResult ret = VectorReallocation.testScheduleTasks();
+				retArr.add(ret);
+				System.out.println(ret.resultDetails);
+			}
+		}
+
+		long costSequentially = 0;
+		for (int i = 0; i < retArr.size(); i++) {
+			TestResult result = retArr.get(i);
+			if (i % 2 == 0) {
+				// sequentially
+				costSequentially = result.totalCostInMs;
+			} else {
+				// in parallel
+				result.resultOverall = result.resultOverall.concat(String
+						.format("%.4f x\n", (double) costSequentially
+								/ (double) result.totalCostInMs));
+			}
+			System.out.println(result.resultDetails);
+		}
+
+		// Overall
+		for (int i = 0; i < retArr.size(); i++) {
+			System.out.println(retArr.get(i).resultOverall);
+		}
 	}
 
 }

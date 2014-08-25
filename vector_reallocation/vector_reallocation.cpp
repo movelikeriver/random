@@ -49,6 +49,7 @@
 
 #include <iostream>
 #include <list>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -59,34 +60,57 @@
 //  Target: x86_64-apple-darwin13.3.0
 //  Thread model: posix
 //
-// For FIBONACCI_RECUR, RECUR_N=40, num_tasks=9:
-//  10925 ms sequentially, 1.6247 x
-//   6724 ms in parallel
+// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9
+// RUN_IN_PARALLEL=0, total in ms: 13317
 //
-// For FIBONACCI_FAST, RECUR_N=90, num_tasks=9:
-//   61607 ms sequentially, 1.9502 x
-//   31589 ms in parallel
+// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9
+// RUN_IN_PARALLEL=1, total in ms: 6394
+// 2.0827 x
 //
-// For PRIME_NUM:
-// 409291 ms sequentially, 2.4876 x
-// 164531 ms in parallel
+// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9
+// RUN_IN_PARALLEL=0, total in ms: 75175
+//
+// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9
+// RUN_IN_PARALLEL=1, total in ms: 33619
+// 2.2361 x
+//
+// For PRIME_NUM, RECUR_N=90 and NUM_TASKS=9
+// RUN_IN_PARALLEL=0, total in ms: 503682
+//
+// For PRIME_NUM, RECUR_N=90 and NUM_TASKS=9
+// RUN_IN_PARALLEL=1, total in ms: 175475
+// 2.8704 x
 
 typedef long long int64;
 
-static const int RECUR_N = 40;
+static bool RUN_IN_PARALLEL = false;
+static int RECUR_N = 40;
 static const int NUM_TASKS = 9;  // The error is related to this number.
 
 static const int64 MIN_PRIME_N = 100 * 1000;
 static const int64 MAX_PRIME_N = 300 * 1000;
-
-static const bool RUN_IN_PARALLEL = false;
 
 enum TestMode {
   FIBONACCI_RECUR = 0,
   FIBONACCI_FAST = 1,
   PRIME_NUM = 2,
 };
-static const TestMode TEST_MODE = FIBONACCI_RECUR;
+static TestMode TEST_MODE = FIBONACCI_RECUR;
+
+std::string GetTestModeString(TestMode test_mode) {
+  switch (test_mode) {
+  case FIBONACCI_RECUR:
+    return "FIBONACCI_RECUR";
+  case FIBONACCI_FAST:
+    return "FIBONACCI_FAST";
+  case PRIME_NUM:
+    return "PRIME_NUM";
+  default:
+    break;
+  }
+  return "INVALID_TestMode";
+}
+
 
 class CpuTimer {
 public:
@@ -107,6 +131,12 @@ public:
 private:
   struct timeval start_;
   struct timeval end_;
+};
+
+struct TestResult {
+  std::string overall;
+  std::string details;
+  int64 cost_in_ms;
 };
 
 class TaskManager {
@@ -281,13 +311,25 @@ const std::string GetNowString() {
   return buf;
 }
 
-void PrintVector(const std::vector<int>& data_vec) {
+std::string PrintVector(const std::vector<int>& data_vec) {
+  std::string ret;
   for (int i = 0; i < data_vec.size(); ++i) {
-    std::cout << i << ", " << data_vec[i] << "\n";  // For debugging
+    char buffer[20];
+    sprintf(buffer, "%d, ", data_vec[i]);
+    ret += std::string(buffer);
   }
+  return ret;
 }
 
-void Test_ScheduleTasks() {
+void Test_ScheduleTasks(TestResult *result) {
+  char buffer[80];
+  sprintf(buffer,
+	  "For %s, RECUR_N=%d and NUM_TASKS=%d\n"
+	  "RUN_IN_PARALLEL=%d, ",
+	  GetTestModeString(TEST_MODE).c_str(), RECUR_N, NUM_TASKS,
+	  RUN_IN_PARALLEL);
+  result->overall += std::string(buffer);
+
   std::vector<int> data_vec;  // own the memory.
   // Comment the line below will make the job crash due to address
   // change during container's memory reallocation.  See comment on
@@ -296,19 +338,96 @@ void Test_ScheduleTasks() {
   TaskManager task_manager;
   ScheduleTasks(NUM_TASKS, &data_vec, &task_manager);
 
-  std::cout << GetNowString() << " Before:\n";
-  PrintVector(data_vec);
+  result->details += (GetNowString() + " Before: " +
+		      PrintVector(data_vec) + "\n");
 
   CpuTimer timer;
   timer.Start();
   task_manager.Run();
   timer.Stop();
  
-  std::cout << GetNowString() << " After:\n";
-  PrintVector(data_vec);
-  std::cout << "Total cost in ms: " << timer.GetInMs() << std::endl;
+  result->details += (GetNowString() + " After: " +
+		      PrintVector(data_vec) + "\n");
+
+  sprintf(buffer, "total in ms: %d\n", timer.GetInMs());
+  result->overall += std::string(buffer);
+  result->cost_in_ms = timer.GetInMs();
 }
 
 int main() {
-  Test_ScheduleTasks();
+  std::vector<TestResult*> result_vec;
+  {
+    TEST_MODE = FIBONACCI_RECUR;
+    RECUR_N = 40;
+    {
+      RUN_IN_PARALLEL = false;
+      TestResult* result = new TestResult;
+      result_vec.push_back(result);
+      Test_ScheduleTasks(result);
+      std::cout << result->details << std::endl;
+    }
+    {
+      RUN_IN_PARALLEL = true;
+      TestResult* result = new TestResult;
+      result_vec.push_back(result);
+      Test_ScheduleTasks(result);
+      std::cout << result->details << std::endl;
+    }
+  }
+  {
+    TEST_MODE = FIBONACCI_FAST;
+    RECUR_N = 90;
+    {
+      RUN_IN_PARALLEL = false;
+      TestResult* result = new TestResult;
+      result_vec.push_back(result);
+      Test_ScheduleTasks(result);
+      std::cout << result->details << std::endl;
+    }
+    {
+      RUN_IN_PARALLEL = true;
+      TestResult* result = new TestResult;
+      result_vec.push_back(result);
+      Test_ScheduleTasks(result);
+      std::cout << result->details << std::endl;
+    }
+  }
+  {
+    TEST_MODE = PRIME_NUM;
+    {
+      RUN_IN_PARALLEL = false;
+      TestResult* result = new TestResult;
+      result_vec.push_back(result);
+      Test_ScheduleTasks(result);
+      std::cout << result->details << std::endl;
+    }
+    {
+      RUN_IN_PARALLEL = true;
+      TestResult* result = new TestResult;
+      result_vec.push_back(result);
+      Test_ScheduleTasks(result);
+      std::cout << result->details << std::endl;
+    }
+  }
+
+  int64 cost_sequentially = 0;
+  for (int i = 0; i < result_vec.size(); ++i) {
+    TestResult* result = result_vec[i];
+
+    if (i % 2 == 0) {
+      // sequentially
+      cost_sequentially = result->cost_in_ms;
+    } else {
+      char buffer[80];
+      sprintf(buffer, "%.4f x\n",
+	      (double)cost_sequentially / (double)result->cost_in_ms);
+      result->overall += std::string(buffer);
+    }
+    std::cout << result->details << std::endl;
+  }
+
+  for (TestResult* result : result_vec) {
+    std::cout << result->overall << std::endl;
+    delete result;
+  }
 }

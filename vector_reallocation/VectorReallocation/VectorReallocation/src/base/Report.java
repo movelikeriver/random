@@ -15,17 +15,27 @@ public class Report implements Runnable {
 	// Java(TM) SE Runtime Environment (build 1.7.0_67-b01)
 	// Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
 	//
-	// For FIBONACCI_RECUR, RECUR_N=40 and NUM_TASKS=9:
-	// 10842 ms sequentially, 1.9788 x
-	// 5479 ms in parallel
 	//
-	// For FIBONACCI_FAST, RECUR_N=90 and NUM_TASKS=9:
-	// 174623 ms sequentially, 2.5480 x
-	// 68532 ms in parallel, (166514 ms in first run)
+	// For FIBONACCI_RECUR, RECUR_N=40 and NUM=TASKS=9
+	// RUN_IN_PARALLEL=false, total in ms: 12552
 	//
-	// For PRIME_NUM:
-	// 447309 ms sequentially, 2.4411 x
-	// 183240 ms in parallel
+	// For FIBONACCI_RECUR, RECUR_N=40 and NUM=TASKS=9
+	// RUN_IN_PARALLEL=true, total in ms: 5583
+	// 2.2483 x
+	//
+	// For FIBONACCI_FAST, RECUR_N=90 and NUM=TASKS=9
+	// RUN_IN_PARALLEL=false, total in ms: 212962
+	//
+	// For FIBONACCI_FAST, RECUR_N=90 and NUM=TASKS=9
+	// RUN_IN_PARALLEL=true, total in ms: 103223
+	// 2.0631 x
+	//
+	// For PRIME_NUM, RECUR_N=90 and NUM=TASKS=9
+	// RUN_IN_PARALLEL=false, total in ms: 520514
+	//
+	// For PRIME_NUM, RECUR_N=90 and NUM=TASKS=9
+	// RUN_IN_PARALLEL=true, total in ms: 185111
+	// 2.8119 x
 
 	public static int RECUR_N = 40;
 	public static int NUM_TASKS = 9;
