@@ -68,11 +68,11 @@ func genLinksInDir(dirPath string) (ret string) {
 
 	files, _ := ioutil.ReadDir(dirPath)
 	var buffer bytes.Buffer
-	for _, f := range files {
+	for i := len(files)-1; i >= 0; i-- {
+		f := files[i]
 		segs := strings.Split(dirPath, string(os.PathSeparator))
-		imgPath := segs[len(segs)-1] + "/" + f.Name() // for html
+		imgPath := segs[len(segs)-1] + "/" + f.Name() // "/" forfor html
 		buffer.WriteString(fmt.Sprintf(htmlStr, imgPath, imgPath, f.Name()))
-
 	}
 	return buffer.String()
 }
