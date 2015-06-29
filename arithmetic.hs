@@ -1,12 +1,33 @@
-module Main where
+module Main (
+       main
+) where
 
-ques :: Int -> Int -> ([Char], [Char])
-ques x y = ((show x) ++ " + " ++ (show y) ++ " = ?", show (x+y))
+import System.Random  --cabal install random
+
+
+getPair :: [Int] -> [(Int, Int)]
+getPair [] = []
+getPair [x] = []
+getPair (x:y:s) = (x, y) : (getPair s)
+
+
+ques :: [(Int, Int)] -> IO ()
+ques [] = putStrLn ""
+ques ((x,y):xs) = do
+     putStrLn ((show x) ++ " + " ++ (show y) ++ " = ?")
+     let expect = x+y
+     actual <- readLn :: IO Int
+     if actual == expect
+     then putStrLn "Right!"
+     else putStrLn "Wrong!"
+     ques xs  --a Haskell FP recursive style to do for-loop equivalent in imperative language
+
 
 main = do
-     let (q, a) = ques 3 4
-     putStrLn q
-     i <- getLine
-     putStrLn (if a == i
-               then "Right!"
-               else "Wrong!")
+     putStrLn "How many questions do you want (3-20)?"
+     totalnum <- readLn :: IO Int
+
+     g <- getStdGen
+     let ss = take (totalnum*2) (randomRs (0, 9) g :: [Int])
+     let pairs = getPair ss
+     ques pairs
