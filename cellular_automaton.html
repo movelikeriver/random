@@ -1,0 +1,107 @@
+<html>
+
+<style>
+.grid_live {
+	background-color: yellow;
+	width: 10px;
+	height: 10px
+}
+
+.grid_dead {
+	background-color: blue;
+	width: 10px;
+	height: 10px
+}
+
+</style>
+
+<body>
+	<table id="world">
+	</table>	
+</body>
+
+<script>
+
+var SIZE = 50;
+
+function getId(x, y) {
+	return x + '_' + y;
+}
+
+function getXY(x, y) {
+	if (x < 0) {
+		x = 0;
+	} else if (x >= SIZE) {
+		x = SIZE-1;
+	}
+	if (y < 0) {
+		y = 0;
+	} else if (y >= SIZE) {
+		y = SIZE-1;
+	}
+	return [x, y];
+}
+
+function isLive(x, y) {
+	var cid = getId(x, y);
+	var td = document.getElementById(cid);
+	return td.className === 'grid_live';
+}
+
+function setCell(x, y, c) {
+	var cid = getId(x, y);
+	var td = document.getElementById(cid).className = c;
+}
+
+function change() {
+	var x = Math.floor(Math.random() * SIZE);
+	var y = Math.floor(Math.random() * SIZE);
+	cnt = 0;
+	for (var i = -1; i <= 1; i++) {
+		for (var j = -1; j <= 1; j++) {
+			if (i === 0 && j === 0) {
+				continue;
+			}
+			var xy = getXY(x+i, y+j);
+			if (isLive(xy[0], xy[1])) {
+				cnt++;
+			}
+		}
+	}
+	if (cnt === 0) {
+		if (Math.random() > 0.6) {
+			setCell(x, y, 'grid_live');
+		}
+	} else if (cnt === 2) {
+		setCell(x, y, 'grid_live');
+	} else if (cnt === 3) {
+		setCell(x, y, 'grid_dead');
+	}
+}
+
+
+var arr = [];
+for (var i = 0; i < SIZE; i++) {
+	var lines = [];
+	for (var j = 0; j < SIZE; j++) {
+		lines.push('<td id="' + getId(i, j) + '" class="grid_dead"></td>')
+	}
+	arr.push('<tr>' + lines.join('') + '</tr>');
+}
+document.getElementById('world').innerHTML = arr.join('');
+
+
+function startTimer () {
+    setTimeout(stopTimer, 50);
+}
+
+function stopTimer () {
+	change();
+	startTimer();
+}
+
+startTimer();
+
+</script>
+
+</html>
