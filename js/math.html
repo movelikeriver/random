@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport"content="target-densitydpi=device-dpi, width=device-width" />
+
+        <style type="text/css">
+            .panel { border:0 none; padding:3px 5px 5px; margin:0; margin-top:5px; font-family: 'Droid Sans',Arial,sans-serif !important; }
+            .panel .up { height:40px; margin-top:20px; width: 150px; }
+            .panel .up input { border:1px solid #434343; font-size:15px; line-height:1.5em; width:30%; }
+            .panel .up button { border:1px solid; font-size:15px; font-weight: bold; width:40%; cursor: pointer; color: #434343; }
+            .panel .down { height:40px; margin-top:20px; width: 200px; }
+            .panel .down input { border:1px solid #434343; font-size:15px; line-height:1.5em; width:30%; }
+            .panel .down button { border:1px solid; font-size:15px; font-weight: bold; width:40%; cursor: pointer; color: #434343; }
+            .panel .show-result { border:0 none; font-size:15px; margin-top:15px; }
+            .panel .note { border:0 none; font-size:12px; color: #777; }
+            .yes { color: green; }
+            .no { color: red; }
+        </style>
+        <title>少年心算狂</title>
+    </head>
+
+    <body>
+        <div>
+            <p>少年心算狂</p>
+            <img id="jiqimao" src="./jiqimao/jiqimao2.jpeg" height="72" width="72">
+        </div>
+        <div class="panel">
+            <div class="up">
+                <input id="range" value="20"></input>
+                <button onclick="generate()">出题</button>
+            </div>
+
+            <br/>
+
+            <div class="down">
+                <div id="question">点"出题"按钮开始做题</div>
+                <div id="a">
+                    <input id="answer"></input>
+                    <button onclick="submit()">提交</button>
+                </div>
+                <div id="result" class="show-result">
+                </div>
+            </div>
+        </div>
+
+    </body>
+
+    <script>
+
+var RANGE_ERROR = '<b>请输入整数，比如10, 20, 100, 1000等</b>';
+var ANSWER_YES = [
+    '<b>答对了！ 再做一道吧？</b>',
+    '<b>真厉害！ 再来？</b>',
+    '<b>哎哟不错哦！ 接着做？</b>',
+    '<b>聪明！ 还能做得快点吗？</b>',
+];
+var ANSWER_NO = [
+    '<b>答错了，再想想？</b>',
+    '<b>怎么回事？再想想？</b>',
+    '<b>不对不对，再想想？</b>',
+    '<b>看清楚了吗？不难吧？</b>',
+];
+var JIQIMAO = [
+    'jiqimao/jiqimao1.jpeg',
+    'jiqimao/jiqimao2.jpeg',
+    'jiqimao/jiqimao3.jpeg',
+    'jiqimao/jiqimao4.jpeg',
+    'jiqimao/jiqimao5.png',
+];
+
+var expectedAnswer = 0;
+
+function generate() {
+    var range = parseInt(document.getElementById('range').value);
+    var elem = document.getElementById('result');
+    if (isNaN(range)) {
+        elem.innerHTML = RANGE_ERROR;
+        elem.style.color = 'red';
+        return;
+    }
+
+    var a = Math.floor((Math.random() * range) + 1);
+    var b = Math.floor((Math.random() * range) + 1);
+    var sign = Math.random() < 0.8 ? true : false;
+
+    if (sign) {
+        // add
+        document.getElementById('question').innerHTML = '<b>' + a + ' + ' + b + '</b>';
+        expectedAnswer = a + b;
+    } else {
+        // minus
+        var a1 = Math.max(a, b);
+        var a2 = Math.min(a, b);
+        document.getElementById('question').innerHTML = '<b>' + a1 + ' - ' + a2 + '</b>';
+        expectedAnswer = a1 - a2;
+    }
+    elem.style.color = 'green';
+
+    var idx = Math.floor((Math.random() * JIQIMAO.length));
+    document.getElementById('jiqimao').src = JIQIMAO[idx];
+}
+
+function submit() {
+    var idx = Math.floor((Math.random() * ANSWER_YES.length));
+    var answer = parseInt(document.getElementById('answer').value);
+    var elem = document.getElementById('result');
+    if (isNaN(answer) || answer != expectedAnswer) {
+        document.getElementById('result').innerHTML = ANSWER_NO[idx];
+        elem.style.color = 'red';
+        return;
+    }
+    elem.innerHTML = ANSWER_YES[idx];
+    elem.style.color = 'green';
+}
+
+    </script>
+</html>
