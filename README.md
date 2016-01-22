@@ -8,6 +8,8 @@ git config --local user.email <your email address>
 Checkout [https://help.github.com/articles/changing-author-info/](https://help.github.com/articles/changing-author-info/)
 
 ## Git command lines
+* sync branch with origin/master
+  * `git fetch origin && git rebase -i origin/master`
 * pending files:
   * `git status`
 * recent commits in this branch:
