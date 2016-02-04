@@ -21,3 +21,6 @@ Checkout [https://help.github.com/articles/changing-author-info/](https://help.g
 * revert all untracked files:
   * `git clean -f -n`  (show what to delete)
   * `git clean -f`  (actually delete)
+* revert all tracked files:
+  * `git reset --hard HEAD^`
+  * 
