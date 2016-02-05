@@ -24,3 +24,23 @@ Checkout [https://help.github.com/articles/changing-author-info/](https://help.g
 * revert all tracked files:
   * `git reset --hard HEAD^`
   * 
+
+## Sync code between local and remote machine
+* Setup git server in your remote machine
+  * [https://www.digitalocean.com/community/tutorials/how-to-set-up-a-private-git-server-on-a-vps](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-private-git-server-on-a-vps)
+  * you can just use `ssh-keygen` without `-C` to generate the pubkey.
+
+* Local machine setup
+  * your local repo dir1 for official git is `~/code`
+  * your local repo dir2 for remote machine git is `~/rt/code`
+  * `git remote -v` to check the remote repo
+  * sync code between dir1 and dir2
+    * `rsync -av --progress ~/code/<your project> ~/rt/code/  --exclude .git --exclude */target/*`
+  * workflow
+    * normal workflow in dir1
+    * sync from dir1 to dir2
+    * `git push` whatever change in dir2 to remote machine git
+
+* Remote machine setup
+  * `git clone` your own created repo
+  * always `git pull` and run test
