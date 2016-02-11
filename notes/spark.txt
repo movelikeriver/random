@@ -1,0 +1,10 @@
+# pyspark
+about `aggregate()`
+aa = sc.parallelize([('a', 1), ('b', 25), ('c',8), ('d',4), ('e',2)])
+aa.aggregate((0,0),                                          # 1. init accumulator value
+             (lambda acc, x: (acc[0]+x[1], acc[1]+1) ),      # 2. accumulator for each x in aa
+             (lambda a1, a2: (a1[0]+a2[0], a1[1]+a2[1])) )   # 3. merge all accumulator
+it will get (40, 5)
+
+Note: step 2 run accumulator for each element x in aa, it will creates lots of accumulators. All these accumulators will be merged in
+step 3, starting from init value.
