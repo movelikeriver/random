@@ -1,26 +1,31 @@
 """Try the time date util for local and gm.
 
 Usage:
-$ date -u +%s && python aa.py
-
-1471979486
+$ date -u +%s && python aa.py 
+1471980937
 
 * time:
-time.struct_time(tm_year=2016, tm_mon=8, tm_mday=23, tm_hour=19, tm_min=11, tm_sec=26, tm_wday=1, tm_yday=236, tm_isdst=0)  time.gmtime()
-1472008286.0  time.mktime
-1471979486  calendar.timegm <-- right
-time.struct_time(tm_year=2016, tm_mon=8, tm_mday=23, tm_hour=12, tm_min=11, tm_sec=26, tm_wday=1, tm_yday=236, tm_isdst=1)  time.localtime()
-1471979486.0  time.mktime <-- right
-1471954286  calendar.timegm
+time.struct_time(tm_year=2016, tm_mon=8, tm_mday=23, tm_hour=19, tm_min=35, tm_sec=37, tm_wday=1, tm_yday=236, tm_isdst=0) 	 time.gmtime()
+1472009737.0 	 time.mktime
+1471980937 	 calendar.timegm <-- right
+time.struct_time(tm_year=2016, tm_mon=8, tm_mday=23, tm_hour=12, tm_min=35, tm_sec=37, tm_wday=1, tm_yday=236, tm_isdst=1) 	 time.localtime()
+1471980937.0 	 time.mktime <-- right
+1471955737 	 calendar.timegm
 
 * datetime.utcnow():
-time.struct_time(tm_year=2016, tm_mon=8, tm_mday=23, tm_hour=19, tm_min=11, tm_sec=26, tm_wday=1, tm_yday=236, tm_isdst=-1)  datetime.utcnow()
-1472004686.0  time.mktime
-1471979486  calendar.timegm <-- right
-time.struct_time(tm_year=2016, tm_mon=8, tm_mday=23, tm_hour=12, tm_min=11, tm_sec=26, tm_wday=1, tm_yday=236, tm_isdst=-1)  datetime.now()
-1471979486.0  time.mktime <-- right
-1471954286  calendar.timegm
+time.struct_time(tm_year=2016, tm_mon=8, tm_mday=23, tm_hour=19, tm_min=35, tm_sec=37, tm_wday=1, tm_yday=236, tm_isdst=-1) 	 datetime.utcnow()
+1472006137.0 	 time.mktime
+1471980937 	 calendar.timegm <-- right
+time.struct_time(tm_year=2016, tm_mon=8, tm_mday=23, tm_hour=12, tm_min=35, tm_sec=37, tm_wday=1, tm_yday=236, tm_isdst=-1) 	 datetime.now()
+1471980937.0 	 time.mktime <-- right
+1471955737 	 calendar.timegm
 
+* summary for getting UTC time in sec:
+1471980937.24
+1471980937
+1471980937.0
+1471980937
+1471980937.0
 """
 
 import calendar
@@ -57,3 +62,10 @@ print to_timestamp(utc_now), '\t calendar.timegm <-- right'
 print local_now.timetuple(), '\t datetime.now()'
 print to_timestamp2(local_now), '\t time.mktime <-- right'
 print to_timestamp(local_now), '\t calendar.timegm'
+
+print '\n* summary for getting UTC time in sec:'
+print time.time()
+print calendar.timegm(time.gmtime())
+print time.mktime(time.localtime())
+print calendar.timegm(datetime.datetime.utcnow().timetuple())
+print time.mktime(datetime.datetime.now().timetuple())
