@@ -40,13 +40,13 @@ func (c Cmp) Less(i, j int) bool {
 	return c[i].distance < c[j].distance
 }
 
-func knn(x Example, n int) int {
+func knn(x Example, k int) int {
 	// known points
 	examples := []Example{
 		{1, 3, 5, 1},
 		{3, 4, 6, -1},
 		{-1, 2, 9, 1},
-		{-3, 7, 2, 1},
+		{-3, 7, 2, -1},
 		{-4, 1, 8, 1},
 	}
 
@@ -61,7 +61,7 @@ func knn(x Example, n int) int {
 	fmt.Printf("dists =\t%v\n", dists)
 
 	ret := 0
-	for i := 0; i < n; i++ {
+	for i := 0; i < k; i++ {
 		ex := examples[dists[i].index]
 		fmt.Printf("i=%d, distance=%f, %v\n", i, dists[i].distance, ex)
 		ret += ex.label
