@@ -23,7 +23,18 @@ Checkout [https://help.github.com/articles/changing-author-info/](https://help.g
   * `git clean -f`  (actually delete)
 * revert all tracked files:
   * `git reset --hard HEAD^`
-  * 
+
+## Git show branch name in console
+In `~/.bashrc`, add following lines
+```
+parse_git_branch() {
+     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+```
+then `$(parse_git_branch)` into part of the `PS1` var, e.g.
+```
+export PS1="\u@\h \[\033[32m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\] $ "
+```
 
 ## Sync code between local and remote machine
 * Setup git server in your remote machine
