@@ -1,22 +1,26 @@
 """
 Usage:
-python bigram.py --no-inference_mode
+python bigram.py --no-inference_mode --model_path bigram_model.pt
+python bigram.py --inference_mode --model_path bigram_model.pt --inference_rounds=10
 
 https://www.youtube.com/watch?v=kCc8FmEb1nY&t=4505s
 https://colab.research.google.com/drive/1JMLa53HDuA-i7ZBmqV7ZnA3c_fvtXnx-?usp=sharing#scrollTo=h5hjCcLDr2WC
 """
 
 
+import argparse
+import time
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-import argparse
- 
+
+# command line 
 parser = argparse.ArgumentParser(description='command line flag',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--inference_mode', default=False, type=bool, action=argparse.BooleanOptionalAction, help='inference mode')
 parser.add_argument('--max_new_tokens', default=1000, type=int, help='max new tokens generation')
+parser.add_argument('--inference_rounds', default=3, type=int, help='num of rounds of doing inference')
 parser.add_argument('--model_path', default='bigram_model.pt', help='model path to save or load')
 
 args = parser.parse_args()
@@ -29,9 +33,9 @@ batch_size = 64 #16 # how many independent sequences will we process in parallel
 block_size = 256 #32 # what is the maximum context length for predictions?
 max_iters = 500
 eval_interval = max_iters // 50
+eval_iters = 10
 learning_rate = 4e-3
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-eval_iters = 20
 n_embd = 384 #64
 n_head = 6
 n_layer = 6
@@ -257,12 +261,14 @@ def train(model_path, text):
     # create a PyTorch optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
+    start = time.time()
     for iter in range(max_iters):
-
         # every once in a while evaluate the loss on train and val sets
-        if iter % eval_interval == 0 or iter == max_iters - 1:
+        if iter % eval_interval == 1:
             losses = estimate_loss(model, train_data, val_data)
-            print(f"step {iter} {iter*100.0/max_iters}%% : train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
+            torch.save(model, model_path)
+            remaining_min = (time.time() - start) / iter * (max_iters - iter) / 60.0
+            print(f"step {iter} {iter*100.0/max_iters}%: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}, saved to {model_path}, remaining {remaining_min:.2f} minutes")
 
         # sample a batch of data
         xb, yb = get_batch('train', train_data, val_data)
@@ -273,20 +279,22 @@ def train(model_path, text):
         loss.backward()
         optimizer.step()
 
+    losses = estimate_loss(model, train_data, val_data)
     torch.save(model, model_path)
-    print(f'model is saved to {model_path}')
+    print(f"final result: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}, saved to {model_path}")
 
 
-def inference(model_path, max_new_tokens):
-    print(f'\n\n\n== inference from model: {model_path} ==\n')
+def inference(model_path, max_new_tokens, rounds):
     model = torch.load(model_path)
     m = model.to(device)
     # print the number of parameters in the model
     print(sum(p.numel() for p in m.parameters())/1e6, 'M parameters')
 
     # generate from the model
-    context = torch.zeros((1, 1), dtype=torch.long, device=device)
-    print(decode(m.generate(context, max_new_tokens=max_new_tokens)[0].tolist()))
+    for i in range(rounds):
+        print(f'\nround={i}\n== inference from model: {model_path} ==\n')
+        context = torch.zeros((1, 1), dtype=torch.long, device=device)
+        print(decode(m.generate(context, max_new_tokens=max_new_tokens)[0].tolist()))
 
 
 ########################
@@ -309,6 +317,7 @@ decode = lambda l: ''.join([itos[i] for i in l]) # decoder: take a list of integ
 
 
 model_path = args_config['model_path']
+inference_rounds = args_config['inference_rounds']
 
 # training
 if not args_config['inference_mode']:
@@ -316,5 +325,4 @@ if not args_config['inference_mode']:
 
 # inference
 max_new_tokens = args_config['max_new_tokens']
-inference(model_path, max_new_tokens)
-inference(model_path, max_new_tokens)
+inference(model_path, max_new_tokens, rounds=inference_rounds)
