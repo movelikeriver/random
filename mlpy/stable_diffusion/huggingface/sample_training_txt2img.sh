@@ -1,6 +1,11 @@
 set -euv
 
-export MODEL_NAME="CompVis/stable-diffusion-v1-4"
+# TODO: how to fine tune?
+
+# export MODEL_NAME="CompVis/stable-diffusion-v1-4"
+# moved from ~/.cache/huggingface/.....
+export MODEL_NAME='sd-compvis-model'
+
 export dataset_name="lambdalabs/pokemon-blip-captions"
 
 
@@ -18,7 +23,7 @@ accelerate launch --mixed_precision="no"  train_text_to_image.py \
   --train_batch_size=1 \
   --gradient_accumulation_steps=4 \
   --gradient_checkpointing \
-  --max_train_steps=150 \
+  --max_train_steps=10 \
   --learning_rate=1e-03 \
   --max_grad_norm=1 \
   --lr_scheduler="constant" --lr_warmup_steps=0 \
