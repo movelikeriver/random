@@ -4,7 +4,12 @@ yt-dlp -o video1.mp4 -f mp4 https://www.youtube.com/watch?v=Pl3AnYCeTrU
 python transcribe.py video1.mp4
 
 this will take a while.
-done! now let's play the video with CC
+
+make video with srt file.
+`ffmpeg -i video1.mp4 -vf subtitles=video1.srt -y output1.mp4`
+
+
+or you want to play the video with CC by yourself
 
 open video1.mp4
 python play_cc.py video1.mp4.csv 
@@ -25,7 +30,7 @@ import csv
 from datetime import datetime
 
 import whisper
-
+from whisper.utils import get_writer
 
 def format_item(item):
     return [item["start"], item["text"]]
@@ -35,6 +40,15 @@ def transcribe(model, filename):
     # os.remove(video["file_name"])
 
     print(result["text"])
+
+    # save SRT
+    srt_writer = get_writer('srt', './')
+    srt_writer(result, filename, {
+        'word_timestamps': False,
+        'max_line_width': 1000,
+        'max_line_count': 100,
+        'highlight_words': False})
+
     segments = []
     for item in result["segments"]:
         segments.append(format_item(item))
