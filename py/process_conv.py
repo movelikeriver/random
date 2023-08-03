@@ -86,7 +86,7 @@ def handle_detailed_conv(row, header):
 
 
 def segment(txt):
-    arr = [x.strip() for x in txt.split(' ') if not x.strip()]
+    arr = [x.strip() for x in txt.split(' ') if x.strip() != '']
     if len(arr) <= 3:
         return [' '.join(arr)]
 
