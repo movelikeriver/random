@@ -86,7 +86,7 @@ def handle_detailed_conv(row, header):
 
 
 def segment(txt):
-    arr = [x.strip() for x in txt.split(' ') if x.strip() != '']
+    arr = [x.strip().lower() for x in txt.split(' ') if x.strip() != '']
     if len(arr) <= 3:
         return [' '.join(arr)]
 
@@ -206,9 +206,15 @@ def sample_rows(filename, total_sample):
             cnt += 1
 
     seg_list = seg_map.items()
-    seg_list = sorted(seg_list, key=lambda x : x[1][0] - 3 * x[1][1], reverse=True)
-    for elem in seg_list[:100]:
-        print(f"{elem[0]}, {elem[1][0]}, {elem[1][0]/cnt}, {elem[1][1]}, {elem[1][1]/cnt}")
+    print('==== overturned ====')
+    seg_list2 = sorted(seg_list, key=lambda x : x[1][0] - 3 * x[1][1], reverse=True)
+    for elem in seg_list2[:100]:
+        print(f"{elem[0]}, {elem[1][0]}, {elem[1][0]/cnt:.4f}, {elem[1][1]}, {elem[1][1]/cnt:.4f}")
+
+    print('==== not overturned ====')
+    seg_list2 = sorted(seg_list, key=lambda x : x[1][1] - 3 * x[1][0], reverse=True)
+    for elem in seg_list2[:100]:
+        print(f"{elem[0]}, {elem[1][0]}, {elem[1][0]/cnt:.4f}, {elem[1][1]}, {elem[1][1]/cnt:.4f}")
 
     print(f"{cnt} out of {cnt_all} are eligible!")
 
